@@ -162,14 +162,14 @@ const AVATARS = [
 
 const SEÑALES = [
   {
-    name: "Pare",
-    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846864/pare_av4cop.jpg" alt="Pare" class="señal-img-grande inline">',
+    name: "Límite de Velocidad",
+    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756923857/Limite_velocidad_jitraz.png" alt="Pare" class="señal-img-grande inline">',
     options: [
-      { text: "Pare", correct: true },
-      { text: "Ceda el paso", correct: false },
-      { text: "Prohibido Parquear", correct: false },
+      { text: "Límite de Velocidad", correct: true },
+      { text: "Detenerse en 80 metros", correct: false },
+      { text: "Supera los 80 kilometros", correct: false },
     ],
-    tarea: "Cuando vayas caminando con tus padres, muéstrales dónde hay una señal de 'Pare' cerca de tu casa.",
+    tarea: "Cuando vayas caminando con tus padres, muéstrales dónde hay una señal de 'Límite de Velocidad' cerca de tu casa.",
   },
   {
     name: "Ceda el paso",
@@ -177,7 +177,7 @@ const SEÑALES = [
     options: [
       { text: "Pare", correct: false },
       { text: "Ceda el paso", correct: true },
-      { text: "No girar en U", correct: false },
+      { text: "Desvío cerca", correct: false },
     ],
     tarea: "Pregunta a tus padres si conocen una esquina donde deban ceder el paso y dibújala en una hoja.",
   },
@@ -187,16 +187,16 @@ const SEÑALES = [
     options: [
       { text: "Prohibido Parquear", correct: true },
       { text: "Parqueadero autorizado", correct: false },
-      { text: "Ciclovía", correct: false },
+      { text: "Zona privada", correct: false },
     ],
     tarea: "Comenta con tus padres por qué es importante no parquear donde está esta señal.",
   },
   {
-    name: "Peatón",
+    name: "Cruce Peatonal",
     img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846152/peaton_x5hllv.png" alt="Peatón" class="señal-img-grande inline">',
     options: [
-      { text: "Peatón", correct: true },
-      { text: "Animales en la vía", correct: false },
+      { text: "Cruce Peatonal", correct: true },
+      { text: "Zona Escolar", correct: false },
       { text: "Obras en la vía", correct: false },
     ],
     tarea: "Dile a tus padres que te acompañen a cruzar por una cebra peatonal y cuéntales por qué es importante.",
@@ -207,7 +207,7 @@ const SEÑALES = [
     options: [
       { text: "No girar en U", correct: true },
       { text: "Girar a la izquierda", correct: false },
-      { text: "Zona escolar", correct: false },
+      { text: "No Retorno", correct: false },
     ],
     tarea: "Dile a tus padres por qué no es seguro girar en U en todas partes.",
   },
@@ -216,8 +216,8 @@ const SEÑALES = [
     img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846150/curva_vdhyi3.webp" alt="Curva peligrosa" class="señal-img-grande inline">',
     options: [
       { text: "Curva peligrosa", correct: true },
-      { text: "Parqueadero", correct: false },
-      { text: "Ciclovía", correct: false },
+      { text: "Curva Cerca", correct: false },
+      { text: "Curva en L", correct: false },
     ],
     tarea: "Dibuja una curva peligrosa y explícale a tus padres su significado.",
   },
@@ -227,19 +227,19 @@ const SEÑALES = [
     options: [
       { text: "Zona escolar", correct: true },
       { text: "Obras en la vía", correct: false },
-      { text: "Semáforo adelante", correct: false },
+      { text: "Paso Peatonal", correct: false },
     ],
     tarea: "Pregunta a tus padres dónde hay una escuela cerca y descríbela.",
   },
   {
-    name: "Semáforo adelante",
-    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846151/semaforo_kssfzn.png" alt="Semáforo adelante" class="señal-img-grande inline">',
+    name: "Intercepción",
+    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756925424/intercepcion_hiq93r.png" alt="Semáforo adelante" class="señal-img-grande inline">',
     options: [
-      { text: "Semáforo adelante", correct: true },
-      { text: "Ceda el paso", correct: false },
-      { text: "Curva peligrosa", correct: false },
+      { text: "Intercepción", correct: true },
+      { text: "Hospital", correct: false },
+      { text: "Desvío", correct: false },
     ],
-    tarea: "Dibuja un semáforo y cuéntale a tus padres qué significa cada color.",
+    tarea: "Cuéntale a tus padres qué significa una Intercepción.",
   },
   {
     name: "Ciclovía",
@@ -252,21 +252,21 @@ const SEÑALES = [
     tarea: "Visita una ciclovía con tus padres y cuéntales su importancia.",
   },
   {
-    name: "Animales en la vía",
-    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846151/animales_pmjs0w.png" alt="Animales en la vía" class="señal-img-grande inline">',
+    name: "No Adelantar",
+    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756925694/No_adelantar_zu7ttc.webp" alt="Animales en la vía" class="señal-img-grande inline">',
     options: [
-      { text: "Animales en la vía", correct: true },
-      { text: "Curva peligrosa", correct: false },
-      { text: "Zona escolar", correct: false },
+      { text: "No Adelantar", correct: true },
+      { text: "No Carreras", correct: false },
+      { text: "Doble Vía", correct: false },
     ],
-    tarea: "Haz una lista de animales que podrías ver en la vía y cuéntasela a tus padres.",
+    tarea: "Pregúntale a tus padres sí en algún momento no han seguido esta señal.",
   },
   {
     name: "Obras en la vía",
     img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846151/obras_cnzofw.png" alt="Obras en la vía" class="señal-img-grande inline">',
     options: [
       { text: "Obras en la vía", correct: true },
-      { text: "Semáforo adelante", correct: false },
+      { text: "Trabajador al Volante", correct: false },
       { text: "Peatón", correct: false },
     ],
     tarea: "Dibuja una señal de obras y muéstrasela a tus padres.",
