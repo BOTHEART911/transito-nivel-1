@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>¡Reconociendo las Señales de Tránsito!</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Favicon -->
+  <link rel="icon" href="https://res.cloudinary.com/dqqeavica/image/upload/v1756743104/Logo_rkja6o.png" type="image/png">
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .game-btn:active { transform: scale(0.98);}
+    .stage-bg { background: linear-gradient(135deg, #dbeafe 60%, #fef08a 100%);}
+    .shake { animation: shake 0.4s;}
+    @keyframes shake {
+      0% { transform: translateX(0);}
+      20% { transform: translateX(-8px);}
+      40% { transform: translateX(8px);}
+      60% { transform: translateX(-4px);}
+      80% { transform: translateX(4px);}
+      100% { transform: translateX(0);}
+    }
+    .tránsito-entity-img {
+      width: 60px;
+      max-width: 22vw;
+      margin-bottom: 0.5rem;
+      border-radius: 1rem;
+      box-shadow: 0 4px 24px #0001;
+      display: block;
+    }
+    .avatar-img {
+      width: 70px;
+      height: 95px;
+      object-fit: contain;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 2px 12px #0002;
+      border: 2px solid #e0e7ff;
+      margin: 0 auto;
+      transition: box-shadow 0.2s, border 0.2s;
+    }
+    .avatar-img.selected {
+      box-shadow: 0 0 0 4px #fde047;
+      border-color: #f59e42;
+    }
+    @media (max-width:600px) {
+      .avatar-img { width: 48px; height: 68px; }
+      .tránsito-entity-img { width: 38px; }
+    }
+    .volver-btn {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      z-index: 40;
+    }
+    /* Confetti animation */
+    .confetti {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none;
+      z-index: 100;
+      overflow: hidden;
+    }
+    .confetti-piece {
+      position: absolute;
+      width: 14px; height: 14px;
+      border-radius: 3px;
+      opacity: 0.85;
+      animation: confetti-fall 1.8s cubic-bezier(.62,.02,.37,.99) forwards;
+    }
+    @keyframes confetti-fall {
+      0% { transform: translateY(-20px) rotate(0deg); opacity: 1;}
+      80% { opacity: 1;}
+      100% { transform: translateY(90vh) rotate(360deg); opacity: 0;}
+    }
+    .aprobado-txt {
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #10b981;
+      background: linear-gradient(90deg,#fef08a 20%,#a7f3d0 80%);
+      padding: 0.35em 1em;
+      border-radius: 2em;
+      box-shadow: 0 4px 24px #eab30833;
+      margin-bottom: 1em;
+      animation: aprobadoPulse 1.1s infinite alternate;
+    }
+    @keyframes aprobadoPulse {
+      0% { transform: scale(1);}
+      100% { transform: scale(1.08);}
+    }
+    .codigo-premio {
+      font-size: 1.5rem;
+      background: #fbbf24;
+      color: #fff;
+      padding: 0.3em 1em;
+      border-radius: 1.2em;
+      font-weight: bold;
+      box-shadow: 0 2px 8px #f59e4233;
+      letter-spacing: 2px;
+      margin-bottom: 1em;
+    }
+
+    @media (max-width: 480px) {
+      .rounded-3xl, .modal-juego {
+        border-radius: 1em !important;
+        padding: 0.5em 0.3em !important;
+        min-height: unset !important;
+      }
+      .pregunta-txt, .nivel-txt, .text-lg, .text-xl, .font-bold {
+        font-size: 1rem !important;
+        line-height: 1.2 !important;
+      }
+      .game-btn, .opcion-btn {
+        padding: 0.7em 0.4em !important;
+        font-size: 1rem !important;
+      }
+      .tránsito-entity-img, .avatar-img {
+        width: 36px !important;
+        height: 44px !important;
+        margin-bottom: 0.2em !important;
+      }
+      .max-w-md, .max-w-lg {
+        max-width: 95vw !important;
+      }
+    }
+    @media (max-width:600px) {
+      .señal-img-grande { height: 100px !important; }
+    }
+    @media (min-width:601px) {
+      .señal-img-grande { height: 170px !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-bl from-blue-100 to-yellow-100">
+  <div id="app" class="w-full max-w-2xl mx-auto mt-4 relative"></div>
+  <div id="confetti"></div>
+
+  <!-- SONIDOS NUEVOS -->
+  <audio id="audio-inicio" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756841760/intro_b1nuvu.mp3" preload="auto" autoplay></audio>
+  <audio id="audio-tictac" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756843183/tictoc_j7oje6.mp3" preload="auto" autoplay></audio>
+  <audio id="audio-bien" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756844320/correcto_svttl1.mp3" preload="auto" autoplay></audio>
+  <audio id="audio-mal" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756844319/incorrecto_h5vgbl.mp3" preload="auto" autoplay></audio>
+  <audio id="audio-fin" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756844514/final_ein36c.mp3" preload="auto" autoplay></audio>
+  <!-- Fiesta/aprobado -->
+  <audio id="audio-fiesta" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756844514/ganar_tfdnmh.mp3" preload="auto" autoplay></audio>
+
+  <script>
+const TIEMPO_INICIAL = 30;
+const TIEMPO_MINIMO = 10;
+const REDUCCION_TIEMPO_CORRECTA = 4;
+const MINIMO_APROBADO = 6;
+const CODIGO_PREMIO = "STT0911";
+
+// AVATAR IMAGES
+const AVATARS = [
+  "https://res.cloudinary.com/dqqeavica/image/upload/v1756828158/avatar_1_gjnwup.png",
+  "https://res.cloudinary.com/dqqeavica/image/upload/v1756828158/avatar_2_om3ufg.png",
+  "https://res.cloudinary.com/dqqeavica/image/upload/v1756828158/avatar_3_dswwyx.png",
+  "https://res.cloudinary.com/dqqeavica/image/upload/v1756828158/avatar_4_rhcecg.png",
+  "https://res.cloudinary.com/dqqeavica/image/upload/v1756828159/avatar_5_yx0wam.png",
+  "https://res.cloudinary.com/dqqeavica/image/upload/v1756828159/avatar_6_gdxczb.png"
+];
+
+const SEÑALES = [
+  {
+    name: "Pare",
+    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846864/pare_av4cop.jpg" alt="Pare" class="señal-img-grande inline">',
+    options: [
+      { text: "Pare", correct: true },
+      { text: "Ceda el paso", correct: false },
+      { text: "Prohibido Parquear", correct: false },
+    ],
+    tarea: "Cuando vayas caminando con tus padres, muéstrales dónde hay una señal de 'Pare' cerca de tu casa.",
+  },
+  {
+    name: "Ceda el paso",
+    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846481/ceda_hgdufi.png" alt="Ceda el paso" class="señal-img-grande inline">',
+    options: [
+      { text: "Pare", correct: false },
+      { text: "Ceda el paso", correct: true },
+      { text: "No girar en U", correct: false },
+    ],
+    tarea: "Pregunta a tus padres si conocen una esquina donde deban ceder el paso y dibújala en una hoja.",
+  },
+  {
+    name: "Prohibido Parquear",
+    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846152/Prohibido_p078j9.webp" alt="Prohibido Parquear" class="señal-img-grande inline">',
+    options: [
+      { text: "Prohibido Parquear", correct: true },
+      { text: "Parqueadero autorizado", correct: false },
+      { text: "Ciclovía", correct: false },
+    ],
+    tarea: "Comenta con tus padres por qué es importante no parquear donde está esta señal.",
+  },
+  {
+    name: "Peatón",
+    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846152/peaton_x5hllv.png" alt="Peatón" class="señal-img-grande inline">',
+    options: [
+      { text: "Peatón", correct: true },
+      { text: "Animales en la vía", correct: false },
+      { text: "Obras en la vía", correct: false },
+    ],
+    tarea: "Dile a tus padres que te acompañen a cruzar por una cebra peatonal y cuéntales por qué es importante.",
+  },
+  {
+    name: "No girar en U",
+    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846152/en_u_bllh8x.png" alt="No girar en U" class="señal-img-grande inline">',
+    options: [
+      { text: "No girar en U", correct: true },
+      { text: "Girar a la izquierda", correct: false },
+      { text: "Zona escolar", correct: false },
+    ],
+    tarea: "Dile a tus padres por qué no es seguro girar en U en todas partes.",
+  },
+  {
+    name: "Curva peligrosa",
+    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846150/curva_vdhyi3.webp" alt="Curva peligrosa" class="señal-img-grande inline">',
+    options: [
+      { text: "Curva peligrosa", correct: true },
+      { text: "Parqueadero", correct: false },
+      { text: "Ciclovía", correct: false },
+    ],
+    tarea: "Dibuja una curva peligrosa y explícale a tus padres su significado.",
+  },
+  {
+    name: "Zona Escolar",
+    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846151/escolar_eye7se.png" alt="Zona Escolar" class="señal-img-grande inline">',
+    options: [
+      { text: "Zona escolar", correct: true },
+      { text: "Obras en la vía", correct: false },
+      { text: "Semáforo adelante", correct: false },
+    ],
+    tarea: "Pregunta a tus padres dónde hay una escuela cerca y descríbela.",
+  },
+  {
+    name: "Semáforo adelante",
+    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846151/semaforo_kssfzn.png" alt="Semáforo adelante" class="señal-img-grande inline">',
+    options: [
+      { text: "Semáforo adelante", correct: true },
+      { text: "Ceda el paso", correct: false },
+      { text: "Curva peligrosa", correct: false },
+    ],
+    tarea: "Dibuja un semáforo y cuéntale a tus padres qué significa cada color.",
+  },
+  {
+    name: "Ciclovía",
+    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846151/ciclovia_jnupva.png" alt="Ciclovía" class="señal-img-grande inline">',
+    options: [
+      { text: "Ciclovía", correct: true },
+      { text: "Zona escolar", correct: false },
+      { text: "Paso de ciclistas", correct: false },
+    ],
+    tarea: "Visita una ciclovía con tus padres y cuéntales su importancia.",
+  },
+  {
+    name: "Animales en la vía",
+    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846151/animales_pmjs0w.png" alt="Animales en la vía" class="señal-img-grande inline">',
+    options: [
+      { text: "Animales en la vía", correct: true },
+      { text: "Curva peligrosa", correct: false },
+      { text: "Zona escolar", correct: false },
+    ],
+    tarea: "Haz una lista de animales que podrías ver en la vía y cuéntasela a tus padres.",
+  },
+  {
+    name: "Obras en la vía",
+    img: '<img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756846151/obras_cnzofw.png" alt="Obras en la vía" class="señal-img-grande inline">',
+    options: [
+      { text: "Obras en la vía", correct: true },
+      { text: "Semáforo adelante", correct: false },
+      { text: "Peatón", correct: false },
+    ],
+    tarea: "Dibuja una señal de obras y muéstrasela a tus padres.",
+  },
+];
+
+const PREGUNTAS = [
+  "¿Haz visto esta señal? ¿Cuál crees que sea?",
+  "¿Qué indica esta señal?",
+  "¿Cómo se llama esta señal?",
+  "¿Qué significa esta señal?",
+  "¿Para qué sirve esta señal?",
+  "¿Qué debes hacer cuando ves esta señal?",
+  "¿Puedes decir su nombre?",
+  "¿Reconoces esta señal?",
+  "¿Cuál es el nombre correcto de esta señal?",
+];
+
+// ==== 3. ESTADO DEL JUEGO ====
+let state = {
+  screen: "inicio",
+  playerName: "",
+  avatarIndex: 0,
+  stage: 1,
+  question: 0,
+  score: 0,
+  streak: 0,
+  timeLeft: TIEMPO_INICIAL,
+  timer: null,
+  respuestas: [],
+  tareasPendientes: [],
+  lastAnswerCorrect: null,
+  preguntas: [],
+  tiempoNivel: TIEMPO_INICIAL,
+  totalPreguntas: 8,
+  sonido: true,
+  answered: false,
+  preguntaActual: "",
+  selectedOpt: null,
+  salir: false,
+  opcionesPorPregunta: {},
+};
+
+function $(sel) { return document.querySelector(sel);}
+function appHtml(html) { $("#app").innerHTML = html; }
+function rand(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+function shuffle(arr) {
+  let a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ==== 4. SONIDOS ====
+function playSound(id) {
+  if (!state.sonido) return;
+  const audio = document.getElementById(id);
+  if (audio) { audio.currentTime=0; audio.play(); }
+}
+function stopSound(id) {
+  const audio = document.getElementById(id);
+  if (audio) { audio.pause(); audio.currentTime=0; }
+}
+function playTicTac() {
+  if (state.sonido) {
+    stopSound("audio-tictac");
+    const tictac = document.getElementById("audio-tictac");
+    tictac.currentTime = 0;
+    tictac.play();
+  }
+}
+function stopTicTac() {
+  stopSound("audio-tictac");
+}
+
+// ==== 5. CONFETTI EFFECT ====
+function lanzarConfetti() {
+  const colors = ["#fde047","#fbbf24","#10b981","#38bdf8","#f472b6","#6366f1","#f43f5e"];
+  const confettiContainer = document.getElementById('confetti');
+  confettiContainer.innerHTML = '';
+  confettiContainer.className = 'confetti';
+  for(let i=0; i<70; i++){
+    const div = document.createElement('div');
+    div.className = 'confetti-piece';
+    div.style.background = colors[Math.floor(Math.random()*colors.length)];
+    div.style.left = Math.random()*99+'vw';
+    div.style.top = (Math.random()*10)+'vh';
+    div.style.transform = `rotate(${Math.random()*360}deg)`;
+    div.style.animationDelay = (Math.random()*0.7)+'s';
+    confettiContainer.appendChild(div);
+  }
+  setTimeout(()=>{ confettiContainer.innerHTML=''; }, 1900);
+  playSound("audio-fiesta");
+}
+
+// ==== 6. LÓGICA DEL JUEGO ====
+function nuevaPartida() {
+  state.stage = 1;
+  state.question = 0;
+  state.score = 0;
+  state.streak = 0;
+  state.respuestas = [];
+  state.tareasPendientes = [];
+  state.tiempoNivel = TIEMPO_INICIAL;
+  state.lastAnswerCorrect = null;
+  state.preguntas = shuffle(Array.from({length: SEÑALES.length}, (_,i)=>i)).slice(0,state.totalPreguntas);
+  state.timeLeft = state.tiempoNivel;
+  state.answered = false;
+  state.selectedOpt = null;
+  state.preguntaActual = "";
+  state.salir = false;
+  state.opcionesPorPregunta = {};
+}
+
+function renderInicio() {
+  stopTicTac();
+  clearInterval(state.timer);
+  state.timer = null;
+  state.salir = false;
+  appHtml(`
+    <div class="bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center animate-fadeIn">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756743104/secretaria_de_Transito_nxsvyp.jpg" alt="Secretaría de Tránsito" class="tránsito-entity-img mb-3" style="margin-bottom: 1rem;">
+      <h1 class="text-4xl font-bold mb-3 text-yellow-600 text-center">¡Reconoce las Señales de Tránsito!</h1>
+      <div class="mb-4 text-lg text-gray-700 text-center">Aprende jugando y conviértete en un <span class="font-semibold text-blue-500">Héroe Vial</span>.<br>Actividad de la Secretaría de Tránsito</div>
+      <div class="flex flex-col items-center mb-3">
+        <label class="mb-1 text-gray-600 font-medium">Nombre:</label>
+        <input type="text" id="nombre" class="rounded-lg border-2 border-blue-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition w-56 mb-2 text-center" maxlength="12" placeholder="Tu nombre...">
+        <label class="mb-2 text-gray-600 font-medium">Elige tu avatar:</label>
+        <div class="flex flex-row flex-wrap gap-3 justify-center items-center mb-2">
+          ${AVATARS.map((url,i)=>`
+            <img src="${url}" class="avatar-img${state.avatarIndex===i?' selected':''}" onclick="setAvatar(${i})" alt="avatar ${i+1}">
+          `).join("")}
+        </div>
+      </div>
+      <div class="mb-4 flex items-center justify-center gap-2">
+        <button onclick="toggleSonido()" class="text-lg px-3 py-1 rounded-xl bg-yellow-200 hover:bg-yellow-300 font-bold">
+          ${state.sonido ? "🔊 Sonido ON" : "🔇 Sonido OFF"}
+        </button>
+      </div>
+      <button onclick="startGame()" class="game-btn bg-yellow-400 hover:bg-yellow-500 text-white font-bold px-8 py-3 rounded-xl shadow-xl text-2xl mt-2">¡Jugar!</button>
+      <div class="mt-4 text-sm text-gray-400">Creado para la Secretaría de Tránsito Departamental</div>
+    </div>
+  `);
+  playSound("audio-inicio");
+  window.setAvatar = (i)=>{state.avatarIndex=i; renderInicio();}
+  window.toggleSonido = ()=>{state.sonido=!state.sonido; renderInicio();}
+}
+
+function startGame() {
+  let nombre = state.playerName;
+  if (state.screen === "inicio") {
+    nombre = $("#nombre").value.trim();
+    if (nombre.length < 2) {
+      $("#nombre").classList.add('shake');
+      setTimeout(()=>$("#nombre").classList.remove('shake'), 400);
+      return;
+    }
+  }
+  state.playerName = nombre;
+  state.screen = "juego";
+  nuevaPartida();
+  renderStage();
+  startTimer();
+}
+
+function salirAJugar() {
+  state.salir = true;
+  renderInicio();
+}
+
+function startTimer() {
+  clearInterval(state.timer);
+  state.timer = setInterval(()=>{
+    if(state.salir) {
+      clearInterval(state.timer);
+      return;
+    }
+    state.timeLeft--;
+    renderStageUI();
+    if(state.timeLeft<=0){
+      clearInterval(state.timer);
+      if (!state.answered && !state.salir) {
+        answer(-1, true);
+      }
+    }
+  },1000);
+  playTicTac();
+}
+
+function renderStage() {
+  if (state.salir) return;
+  state.screen = "juego";
+  const qIndex = state.preguntas[state.question];
+  const sig = SEÑALES[qIndex];
+
+  if (!state.preguntaActual || state.answered) {
+    state.preguntaActual = rand(PREGUNTAS);
+  }
+  if (!state.opcionesPorPregunta[state.question]) {
+    state.opcionesPorPregunta[state.question] = shuffle(sig.options.map((op, i) => ({...op, _idx: i})));
+  }
+
+  appHtml(`
+    <div class="rounded-3xl shadow-2xl p-4 sm:p-7 flex flex-col items-center w-full stage-bg animate-fadeIn min-h-[540px] relative" id="modal-pregunta">
+      <div class="flex flex-row w-full justify-between items-start mb-2 relative">
+        <div class="flex flex-col items-center" style="min-width:85px;">
+          <button onclick="salirAJugar()" class="btn-salir mb-2" style="align-self: flex-start;">❌ Salir</button>
+          <img src="${AVATARS[state.avatarIndex]}" class="avatar-img mb-1" alt="Avatar">
+          <span class="text-blue-700 font-bold text-lg mt-1">${state.playerName}</span>
+        </div>
+        <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756743104/secretaria_de_Transito_nxsvyp.jpg" class="tránsito-entity-img ml-3 mt-2" alt="Secretaría de Tránsito">
+      </div>
+      <div class="w-full flex flex-col items-center -mt-4 mb-1">
+        <span class="font-bold text-xl text-slate-800 nivel-txt mb-1">Nivel ${state.stage}</span>
+        <div class="mb-2">${sig.img}</div>
+        <div class="pregunta-txt text-center">${state.preguntaActual}</div>
+      </div>
+      <div class="w-full max-w-md mb-1">
+        <div class="flex flex-col gap-3 mt-2" id="opciones-pregunta">
+          ${state.opcionesPorPregunta[state.question].map((opt,i)=>`
+            <button id="op${i}" class="game-btn bg-white border-2 border-blue-200 hover:bg-blue-50 rounded-lg px-5 py-3 text-lg font-semibold text-gray-700 shadow-md transition
+              ${state.answered && opt.correct && state.lastAnswerCorrect ? 'bg-green-200 border-green-400' : ''}
+              ${state.answered && !opt.correct && state.lastAnswerCorrect===false && i===state.selectedOpt ? 'bg-red-200 border-red-400' : ''}
+              ${state.answered && !opt.correct && opt.correct && state.lastAnswerCorrect===false ? 'bg-green-100 border-green-400' : ''}
+            " onclick="answer(${i},false)" ${state.answered?"disabled":""}>${opt.text}</button>
+          `).join("")}
+        </div>
+      </div>
+      <div class="flex justify-between w-full mt-5 mb-2 items-center">
+        <span class="text-md font-bold text-blue-700">${state.playerName}</span>
+        <span class="text-md font-bold text-yellow-700">Pregunta ${state.question+1} / ${state.totalPreguntas}</span>
+      </div>
+      <div class="flex justify-between w-full mb-2">
+        <span class="text-green-700 font-bold">Racha: <span id="racha-ui">${state.streak}</span></span>
+        <span class="text-pink-600 font-bold"><span>⏰</span> <span id="cronometro-ui">${state.timeLeft}</span>s</span>
+      </div>
+      <div class="w-full mt-1">
+        <div class="w-full bg-gray-200 h-3 rounded-full overflow-hidden mb-2">
+          <div class="bg-yellow-400 h-3 transition-all" id="barra-tiempo" style="width:${(state.timeLeft/state.tiempoNivel)*100}%;"></div>
+        </div>
+      </div>
+    </div>
+  `);
+  window.answer = answer;
+  window.salirAJugar = salirAJugar;
+}
+
+function renderStageUI() {
+  if (state.salir) return;
+  if ($("#puntaje-ui")) $("#puntaje-ui").textContent = state.score;
+  if ($("#racha-ui")) $("#racha-ui").textContent = state.streak;
+  if ($("#cronometro-ui")) $("#cronometro-ui").textContent = state.timeLeft;
+  if ($("#barra-tiempo")) $("#barra-tiempo").style.width = ((state.timeLeft/state.tiempoNivel)*100) + '%';
+}
+
+function answer(i, timeOut) {
+  if (state.answered || state.salir) return;
+  clearInterval(state.timer);
+  stopTicTac();
+  state.answered = true;
+  const qIndex = state.preguntas[state.question];
+  const sig = SEÑALES[qIndex];
+  let correcto = false, bonus = 0;
+  let opt = null;
+  let opciones = state.opcionesPorPregunta[state.question];
+  state.selectedOpt = i;
+  if (i >= 0 && opciones[i]) {
+    opt = opciones[i];
+    if (opt.correct) {
+      correcto = true;
+      bonus = Math.floor(state.timeLeft*1.7 + 15*state.streak);
+      state.score += bonus;
+      state.streak++;
+      playSound("audio-bien");
+    } else {
+      state.streak = 0;
+      playSound("audio-mal");
+    }
+  } else {
+    state.streak = 0;
+    playSound("audio-mal");
+  }
+  state.respuestas.push({
+    question: state.question,
+    correcto,
+    tiempo: state.tiempoNivel - state.timeLeft,
+    respuesta: opt ? opt.text : "Sin responder",
+    puntos: bonus,
+    sigIndex: qIndex
+  });
+  state.lastAnswerCorrect = correcto;
+  renderStage();
+  setTimeout(()=>nextQuestion(), 1100);
+}
+
+function nextQuestion() {
+  if(state.salir) return;
+  if (state.lastAnswerCorrect && state.tiempoNivel > TIEMPO_MINIMO) {
+    state.tiempoNivel = Math.max(TIEMPO_MINIMO, state.tiempoNivel-REDUCCION_TIEMPO_CORRECTA);
+  }
+  state.question++;
+  state.answered = false;
+  state.selectedOpt = null;
+  state.preguntaActual = "";
+  if (state.question >= state.totalPreguntas) {
+    setTimeout(()=>renderFin(), 700);
+    playSound("audio-fin");
+  } else {
+    state.timeLeft = state.tiempoNivel;
+    setTimeout(()=>{
+      renderStage();
+      startTimer();
+    }, 400);
+  }
+}
+
+function renderFin() {
+  stopTicTac();
+  playSound("audio-fin");
+  state.screen = "fin";
+  clearInterval(state.timer);
+  // Contar aciertos
+  const aciertos = state.respuestas.filter(r=>r.correcto).length;
+  state.tareasPendientes = [];
+  for (let resp of state.respuestas) {
+    if (resp.correcto) {
+      const tarea = SEÑALES[resp.sigIndex].tarea;
+      if (!state.tareasPendientes.includes(tarea)) {
+        state.tareasPendientes.push(tarea);
+      }
+    }
+  }
+  let estrellas = "⭐".repeat(Math.floor(state.score/350+1)).slice(0,5);
+  let confettiHtml = '';
+  if (aciertos >= MINIMO_APROBADO) {
+    setTimeout(lanzarConfetti, 200);
+  }
+  appHtml(`
+    <div class="bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center animate-fadeIn relative">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756743104/secretaria_de_Transito_nxsvyp.jpg" alt="Secretaría de Tránsito" class="tránsito-entity-img mb-3" style="margin-bottom: 1rem;">
+      <img src="${AVATARS[state.avatarIndex]}" class="avatar-img" alt="Avatar" style="margin-bottom:0.5em">
+      <div class="text-5xl mb-3"></div>
+      <h2 class="text-3xl font-bold text-yellow-700 mb-2">¡Felicidades, ${state.playerName}!</h2>
+      <div class="text-lg font-medium text-blue-600 mb-2">Terminaste la aventura vial.</div>
+      <div class="mb-2 text-xl font-bold text-yellow-500">Puntaje final: <span class="text-blue-900">${state.score}</span></div>
+      <div class="mb-2 text-2xl">${estrellas}</div>
+      ${
+        aciertos >= MINIMO_APROBADO
+        ? `
+          <div class="aprobado-txt">¡Haz superado este reto! 🎉</div>
+          <div class="codigo-premio">Tu código de ganador: <span>${CODIGO_PREMIO}</span></div>
+          <div class="text-green-600 font-bold text-lg mb-2 animate-bounce">¡Eres un Héroe Vial!</div>
+        `
+        : `
+          <div class="text-pink-700 font-bold text-lg mb-2 animate-pulse">
+            ¡Sigue intentando hasta ser un Héroe Vial!
+          </div>
+          <div class="text-slate-600 text-md mb-2">Aciertos: <span class="font-bold">${aciertos}</span> de ${state.totalPreguntas}</div>
+        `
+      }
+      <div class="mb-4">
+        <button onclick="verTareas()" class="game-btn bg-green-400 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold mt-1">Ver tareas para casa</button>
+      </div>
+      <div class="mt-2 flex flex-col gap-2">
+        <button onclick="renderInicio()" class="game-btn px-4 py-2 bg-blue-200 hover:bg-blue-400 text-blue-900 rounded-lg font-bold">Volver al inicio</button>
+        <button onclick="jugarDeNuevo()" class="game-btn px-4 py-2 bg-yellow-300 hover:bg-yellow-400 text-yellow-900 rounded-lg font-bold">Jugar de nuevo</button>
+      </div>
+      <div class="mt-4 text-gray-400 text-xs">Actividad pedagógica Secretaría de Tránsito Departamental</div>
+    </div>
+  `);
+  window.verTareas = renderTareas;
+  window.jugarDeNuevo = jugarDeNuevo;
+}
+
+function jugarDeNuevo() {
+  state.salir = false;
+  state.screen = "juego";
+  nuevaPartida();
+  renderStage();
+  startTimer();
+}
+
+function renderTareas() {
+  appHtml(`
+    <div class="bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center animate-fadeIn">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756743104/secretaria_de_Transito_nxsvyp.jpg" alt="Secretaría de Tránsito" class="tránsito-entity-img mb-3" style="margin-bottom: 1rem;">
+      <img src="${AVATARS[state.avatarIndex]}" class="avatar-img" alt="Avatar" style="margin-bottom:0.5em">
+      <h2 class="text-2xl font-bold text-green-700 mb-3">Tareas para hacer en casa</h2>
+      <ul class="mb-4 w-full max-w-lg text-base list-disc list-inside text-gray-700">
+        ${state.tareasPendientes.length === 0 ? 
+          `<li>¡No hay tareas pendientes! Juega otra vez para conseguir nuevas tareas.</li>`
+          : state.tareasPendientes.map(t=>`<li class="mb-2">${t}</li>`).join("")}
+      </ul>
+      <div class="mb-2">
+        <button onclick="renderFin()" class="game-btn bg-yellow-300 hover:bg-yellow-500 text-white px-5 py-2 rounded font-bold">Volver</button>
+      </div>
+      <div class="text-gray-400 text-xs">Actividad pedagógica Secretaría de Tránsito</div>
+    </div>
+  `);
+}
+
+// Lanzar el inicio al cargar
+renderInicio();
+
+  </script>
+</body>
+</html>
