@@ -392,12 +392,16 @@ function renderInicio() {
   state.salir = false;
   appHtml(`
     <div class="bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center animate-fadeIn">
-      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756743104/secretaria_de_Transito_nxsvyp.jpg" alt="Secretaría de Tránsito" class="tránsito-entity-img mb-3" style="margin-bottom: 1rem;">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756743104/secretaria_de_Transito_nxsvyp.jpg" alt="Secretaría de Tránsito" class="tránsito-entity-img mb-3">
       <h1 class="text-4xl font-bold mb-3 text-yellow-600 text-center">¡Reconoce las Señales de Tránsito!</h1>
-      <div class="mb-4 text-lg text-gray-700 text-center"><b>Primer Nivel</b><br>Reconoce las Señales de Tránsito para convertirte en <br><span class="font-semibold text-blue-500">Guardián Digital de la Seguridad Vial</span>.</div>
+      <div class="mb-4 text-lg text-gray-700 text-center">
+        <b>Primer Nivel</b><br>
+        Reconoce las Señales de Tránsito para convertirte en <br>
+        <span class="font-semibold text-blue-500">Guardián Digital de la Seguridad Vial</span>.
+      </div>
       <div class="flex flex-col items-center mb-3">
         <label class="mb-1 text-gray-600 font-medium">Nombre:</label>
-        <input type="text" id="nombre" class="rounded-lg border-2 border-blue-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition w-56 mb-2 text-center" maxlength="12" placeholder="Tu nombre...">
+        <input type="text" id="nombre" class="rounded-lg border-2 border-blue-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition w-56 mb-2 text-center" maxlength="12" placeholder="Tu nombre" value="${state.playerName}">
         <label class="mb-2 text-gray-600 font-medium">Elige tu avatar:</label>
         <div class="flex flex-row flex-wrap gap-3 justify-center items-center mb-2">
           ${AVATARS.map((url,i)=>`
@@ -608,50 +612,47 @@ function renderFin() {
   }
 
   let estrellas = "⭐".repeat(Math.floor(state.score/350+1)).slice(0,5);
-  let confettiHtml = '';
   if (aciertos >= MINIMO_APROBADO) {
     setTimeout(lanzarConfetti, 200);
   }
 
-  // ================== CAMBIO AÑADIDO: construir URL al Nivel 2 con nombre y avatar ==================
-  // Usamos encodeURIComponent para el nombre y pasamos el índice del avatar tal cual se seleccionó
+  // ================== URL al Nivel 2 con nombre y avatar ==================
   const nivel2Base = "https://botheart911.github.io/transito-nivel-2/";
   const nivel2Url = `${nivel2Base}?nombre=${encodeURIComponent(state.playerName)}&avatar=${state.avatarIndex}`;
-  // ==================================================================================================
+  // =======================================================================
 
   appHtml(`
     <div class="bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center animate-fadeIn relative">
-      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756743104/secretaria_de_Transito_nxsvyp.jpg" alt="Secretaría de Tránsito" class="tránsito-entity-img mb-3" style="margin-bottom: 1rem;">
-      <img src="\${AVATARS[state.avatarIndex]}" class="avatar-img" alt="Avatar" style="margin-bottom:0.5em">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756743104/secretaria_de_Transito_nxsvyp.jpg" alt="Secretaría de Tránsito" class="tránsito-entity-img mb-3">
+      <img src="${AVATARS[state.avatarIndex]}" class="avatar-img" alt="Avatar" style="margin-bottom:0.5em">
       <div class="text-5xl mb-3"></div>
-      <h2 class="text-3xl font-bold text-yellow-700 mb-2">¡Felicidades, \${state.playerName}!</h2>
+      <h2 class="text-3xl font-bold text-yellow-700 mb-2">¡Felicidades, ${state.playerName}!</h2>
       <div class="text-lg font-medium text-blue-600 mb-2">Terminaste la aventura vial.</div>
-      <div class="mb-2 text-xl font-bold text-yellow-500">Puntaje final: <span class="text-blue-900">\${state.score}</span></div>
-      <div class="mb-2 text-2xl">\${estrellas}</div>
+      <div class="mb-2 text-xl font-bold text-yellow-500">Puntaje final: <span class="text-blue-900">${state.score}</span></div>
+      <div class="mb-2 text-2xl">${estrellas}</div>
       ${
         aciertos >= MINIMO_APROBADO
         ? `
           <div class="aprobado-txt">¡Haz superado este reto! 🎉</div>
-          <div class="codigo-premio">Tu código de ganador: <span>\${CODIGO_PREMIO}</span></div>
+          <div class="codigo-premio">Tu código de ganador: <span>${CODIGO_PREMIO}</span></div>
           <div class="text-green-600 font-bold text-lg mb-2 animate-bounce">¡Eres un Guardián Digital de la Seguridad Vial!</div>
         `
         : `
           <div class="text-pink-700 font-bold text-lg mb-2 animate-pulse">
             ¡Sigue intentando hasta ser un Guardián Digital de la Seguridad Vial!
           </div>
-          <div class="text-slate-600 text-md mb-2">Aciertos: <span class="font-bold">\${aciertos}</span> de \${state.totalPreguntas}</div>
+          <div class="text-slate-600 text-md mb-2">Aciertos: <span class="font-bold">${aciertos}</span> de ${state.totalPreguntas}</div>
         `
       }
       <div class="mb-4">
         <button onclick="verTareas()" class="game-btn bg-green-400 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold mt-1">Ver tareas para casa</button>
 
-        <!-- ================== CAMBIO AÑADIDO: botón 'Ir a Nivel 2' usando la URL con parámetros ================== -->
-        <div class="mt-2">
-          <a href="\${nivel2Url}" class="game-btn px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold">
+        <!-- Botón 'Ir a Nivel 2' centrado -->
+        <div class="mt-2 flex justify-center">
+          <a href="${nivel2Url}" class="game-btn inline-block px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold">
             Ir a Nivel 2
           </a>
         </div>
-        <!-- ======================================================================================================= -->
       </div>
       <div class="mt-2 flex flex-col gap-2">
         <button onclick="renderInicio()" class="game-btn px-4 py-2 bg-blue-200 hover:bg-blue-400 text-blue-900 rounded-lg font-bold">Volver al inicio</button>
@@ -674,7 +675,7 @@ function jugarDeNuevo() {
 function renderTareas() {
   appHtml(`
     <div class="bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center animate-fadeIn">
-      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756743104/secretaria_de_Transito_nxsvyp.jpg" alt="Secretaría de Tránsito" class="tránsito-entity-img mb-3" style="margin-bottom: 1rem;">
+      <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756743104/secretaria_de_Transito_nxsvyp.jpg" alt="Secretaría de Tránsito" class="tránsito-entity-img mb-3">
       <img src="${AVATARS[state.avatarIndex]}" class="avatar-img" alt="Avatar" style="margin-bottom:0.5em">
       <h2 class="text-2xl font-bold text-green-700 mb-3">Tareas para hacer en casa</h2>
       <ul class="mb-4 w-full max-w-lg text-base list-disc list-inside text-gray-700">
