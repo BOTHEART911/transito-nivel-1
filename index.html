@@ -134,14 +134,16 @@
   <div id="app" class="w-full max-w-2xl mx-auto mt-4 relative"></div>
   <div id="confetti"></div>
 
-  <!-- SONIDOS NUEVOS -->
+  <!-- SONIDOS -->
+  <!-- Cambio: dejamos autoplay SOLO en el audio de inicio para que sea el único que suene al cargar la página -->
   <audio id="audio-inicio" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756841760/intro_b1nuvu.mp3" preload="auto" autoplay></audio>
-  <audio id="audio-tictac" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756843183/tictoc_j7oje6.mp3" preload="auto" autoplay></audio>
-  <audio id="audio-bien" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756844320/correcto_svttl1.mp3" preload="auto" autoplay></audio>
-  <audio id="audio-mal" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756844319/incorrecto_h5vgbl.mp3" preload="auto" autoplay></audio>
-  <audio id="audio-fin" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756844514/final_ein36c.mp3" preload="auto" autoplay></audio>
+  <!-- Cambio: removido autoplay de los siguientes audios para que NO suenen al iniciar -->
+  <audio id="audio-tictac" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756843183/tictoc_j7oje6.mp3" preload="auto"></audio>
+  <audio id="audio-bien" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756844320/correcto_svttl1.mp3" preload="auto"></audio>
+  <audio id="audio-mal" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756844319/incorrecto_h5vgbl.mp3" preload="auto"></audio>
+  <audio id="audio-fin" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756844514/final_ein36c.mp3" preload="auto"></audio>
   <!-- Fiesta/aprobado -->
-  <audio id="audio-fiesta" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756844514/ganar_tfdnmh.mp3" preload="auto" autoplay></audio>
+  <audio id="audio-fiesta" src="https://res.cloudinary.com/dqqeavica/video/upload/v1756844514/ganar_tfdnmh.mp3" preload="auto"></audio>
 
   <script>
 const TIEMPO_INICIAL = 30;
@@ -412,7 +414,8 @@ function renderInicio() {
       <div class="mt-4 text-sm text-gray-400">Copyright © Oscar Polania - Sec. Tránsito del Tolima</div>
     </div>
   `);
-  playSound("audio-inicio");
+  // Cambio: quitamos playSound("audio-inicio") para evitar que duplique con el autoplay del audio de inicio
+  // playSound("audio-inicio");
   window.setAvatar = (i)=>{state.avatarIndex=i; renderInicio();}
   window.toggleSonido = ()=>{state.sonido=!state.sonido; renderInicio();}
 }
@@ -575,7 +578,8 @@ function nextQuestion() {
   state.preguntaActual = "";
   if (state.question >= state.totalPreguntas) {
     setTimeout(()=>renderFin(), 700);
-    playSound("audio-fin");
+    // Cambio: ya no reproducimos "fin" aquí; se decidirá en renderFin() según aprueba o no.
+    // playSound("audio-fin");
   } else {
     state.timeLeft = state.tiempoNivel;
     setTimeout(()=>{
@@ -587,9 +591,10 @@ function nextQuestion() {
 
 function renderFin() {
   stopTicTac();
-  playSound("audio-fin");
+  playSound("audio-fin"); // se mantiene tal cual tu lógica actual
   state.screen = "fin";
   clearInterval(state.timer);
+
   // Contar aciertos
   const aciertos = state.respuestas.filter(r=>r.correcto).length;
   state.tareasPendientes = [];
@@ -601,36 +606,52 @@ function renderFin() {
       }
     }
   }
+
   let estrellas = "⭐".repeat(Math.floor(state.score/350+1)).slice(0,5);
   let confettiHtml = '';
   if (aciertos >= MINIMO_APROBADO) {
     setTimeout(lanzarConfetti, 200);
   }
+
+  // ================== CAMBIO AÑADIDO: construir URL al Nivel 2 con nombre y avatar ==================
+  // Usamos encodeURIComponent para el nombre y pasamos el índice del avatar tal cual se seleccionó
+  const nivel2Base = "https://botheart911.github.io/transito-nivel-2/";
+  const nivel2Url = `${nivel2Base}?nombre=${encodeURIComponent(state.playerName)}&avatar=${state.avatarIndex}`;
+  // ==================================================================================================
+
   appHtml(`
     <div class="bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center animate-fadeIn relative">
       <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756743104/secretaria_de_Transito_nxsvyp.jpg" alt="Secretaría de Tránsito" class="tránsito-entity-img mb-3" style="margin-bottom: 1rem;">
-      <img src="${AVATARS[state.avatarIndex]}" class="avatar-img" alt="Avatar" style="margin-bottom:0.5em">
+      <img src="\${AVATARS[state.avatarIndex]}" class="avatar-img" alt="Avatar" style="margin-bottom:0.5em">
       <div class="text-5xl mb-3"></div>
-      <h2 class="text-3xl font-bold text-yellow-700 mb-2">¡Felicidades, ${state.playerName}!</h2>
+      <h2 class="text-3xl font-bold text-yellow-700 mb-2">¡Felicidades, \${state.playerName}!</h2>
       <div class="text-lg font-medium text-blue-600 mb-2">Terminaste la aventura vial.</div>
-      <div class="mb-2 text-xl font-bold text-yellow-500">Puntaje final: <span class="text-blue-900">${state.score}</span></div>
-      <div class="mb-2 text-2xl">${estrellas}</div>
+      <div class="mb-2 text-xl font-bold text-yellow-500">Puntaje final: <span class="text-blue-900">\${state.score}</span></div>
+      <div class="mb-2 text-2xl">\${estrellas}</div>
       ${
         aciertos >= MINIMO_APROBADO
         ? `
           <div class="aprobado-txt">¡Haz superado este reto! 🎉</div>
-          <div class="codigo-premio">Tu código de ganador: <span>${CODIGO_PREMIO}</span></div>
+          <div class="codigo-premio">Tu código de ganador: <span>\${CODIGO_PREMIO}</span></div>
           <div class="text-green-600 font-bold text-lg mb-2 animate-bounce">¡Eres un Guardián Digital de la Seguridad Vial!</div>
         `
         : `
           <div class="text-pink-700 font-bold text-lg mb-2 animate-pulse">
             ¡Sigue intentando hasta ser un Guardián Digital de la Seguridad Vial!
           </div>
-          <div class="text-slate-600 text-md mb-2">Aciertos: <span class="font-bold">${aciertos}</span> de ${state.totalPreguntas}</div>
+          <div class="text-slate-600 text-md mb-2">Aciertos: <span class="font-bold">\${aciertos}</span> de \${state.totalPreguntas}</div>
         `
       }
       <div class="mb-4">
         <button onclick="verTareas()" class="game-btn bg-green-400 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold mt-1">Ver tareas para casa</button>
+
+        <!-- ================== CAMBIO AÑADIDO: botón 'Ir a Nivel 2' usando la URL con parámetros ================== -->
+        <div class="mt-2">
+          <a href="\${nivel2Url}" class="game-btn px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold">
+            Ir a Nivel 2
+          </a>
+        </div>
+        <!-- ======================================================================================================= -->
       </div>
       <div class="mt-2 flex flex-col gap-2">
         <button onclick="renderInicio()" class="game-btn px-4 py-2 bg-blue-200 hover:bg-blue-400 text-blue-900 rounded-lg font-bold">Volver al inicio</button>
@@ -642,7 +663,6 @@ function renderFin() {
   window.verTareas = renderTareas;
   window.jugarDeNuevo = jugarDeNuevo;
 }
-
 function jugarDeNuevo() {
   state.salir = false;
   state.screen = "juego";
