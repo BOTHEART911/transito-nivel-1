@@ -647,13 +647,11 @@ function renderFin() {
       <div class="mb-4">
         <button onclick="verTareas()" class="game-btn bg-green-400 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold mt-1">Ver tareas para casa</button>
 
-        <!-- Botón 'Ir a Nivel 2' centrado -->
-        <div class="mt-2 flex justify-center">
-          <a href="${nivel2Url}" class="game-btn inline-block px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold">
-            Ir a Nivel 2
-          </a>
-        </div>
-      </div>
+       <!-- Ir a Nivel 2 con nombre y avatar -->
+            <div class="mt-2">
+              <a href="${nivel2Url}" class="game-btn px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold">Ir a Nivel 2</a>
+            </div>
+          </div>
       <div class="mt-2 flex flex-col gap-2">
         <button onclick="renderInicio()" class="game-btn px-4 py-2 bg-blue-200 hover:bg-blue-400 text-blue-900 rounded-lg font-bold">Volver al inicio</button>
         <button onclick="jugarDeNuevo()" class="game-btn px-4 py-2 bg-yellow-300 hover:bg-yellow-400 text-yellow-900 rounded-lg font-bold">Jugar de nuevo</button>
