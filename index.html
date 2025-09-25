@@ -171,7 +171,7 @@ const SEÑALES = [
       { text: "Detenerse en 80 metros", correct: false },
       { text: "Supera los 80 kilometros", correct: false },
     ],
-    tarea: "Cuando vayas caminando con tus padres, muéstrales dónde hay una señal de 'Límite de Velocidad' cerca de tu casa.",
+    tarea: "Cuando vayas caminando con tus padres, muéstrales dónde hay una señal de \'Límite de Velocidad\' cerca de tu casa.",
   },
   {
     name: "Ceda el paso",
@@ -310,6 +310,7 @@ let state = {
   selectedOpt: null,
   salir: false,
   opcionesPorPregunta: {},
+  ganarReproducido: false, // NUEVO: controla que el sonido de ganar solo suene una vez por partida
 };
 
 function $(sel) { return document.querySelector(sel);}
@@ -363,7 +364,11 @@ function lanzarConfetti() {
     confettiContainer.appendChild(div);
   }
   setTimeout(()=>{ confettiContainer.innerHTML=''; }, 1900);
-  playSound("audio-fiesta");
+  // Reproduce sonido de ganar SOLO si no se ha reproducido en esta partida
+  if (!state.ganarReproducido) {
+    playSound("audio-fiesta");
+    state.ganarReproducido = true;
+  }
 }
 
 // ==== 6. LÓGICA DEL JUEGO ====
@@ -383,6 +388,7 @@ function nuevaPartida() {
   state.preguntaActual = "";
   state.salir = false;
   state.opcionesPorPregunta = {};
+  state.ganarReproducido = false; // reset al iniciar una nueva partida
 }
 
 function renderInicio() {
@@ -401,7 +407,7 @@ function renderInicio() {
       </div>
       <div class="flex flex-col items-center mb-3">
         <label class="mb-1 text-gray-600 font-medium">Nombre:</label>
-        <input type="text" id="nombre" class="rounded-lg border-2 border-blue-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition w-56 mb-2 text-center" maxlength="12" placeholder="Tu nombre" value="${state.playerName}">
+        <input type="text" id="nombre" class="rounded-lg border-2 border-blue-200 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 transition w-56 mb-2 text-center" maxlength="12" placeho[...]
         <label class="mb-2 text-gray-600 font-medium">Elige tu avatar:</label>
         <div class="flex flex-row flex-wrap gap-3 justify-center items-center mb-2">
           ${AVATARS.map((url,i)=>`
@@ -418,8 +424,6 @@ function renderInicio() {
       <div class="mt-4 text-sm text-gray-400">Copyright © Oscar Polania - Sec. Tránsito del Tolima</div>
     </div>
   `);
-  // Cambio: quitamos playSound("audio-inicio") para evitar que duplique con el autoplay del audio de inicio
-  // playSound("audio-inicio");
   window.setAvatar = (i)=>{state.avatarIndex=i; renderInicio();}
   window.toggleSonido = ()=>{state.sonido=!state.sonido; renderInicio();}
 }
@@ -582,8 +586,6 @@ function nextQuestion() {
   state.preguntaActual = "";
   if (state.question >= state.totalPreguntas) {
     setTimeout(()=>renderFin(), 700);
-    // Cambio: ya no reproducimos "fin" aquí; se decidirá en renderFin() según aprueba o no.
-    // playSound("audio-fin");
   } else {
     state.timeLeft = state.tiempoNivel;
     setTimeout(()=>{
@@ -595,7 +597,7 @@ function nextQuestion() {
 
 function renderFin() {
   stopTicTac();
-  playSound("audio-fin"); // se mantiene tal cual tu lógica actual
+  playSound("audio-fin");
   state.screen = "fin";
   clearInterval(state.timer);
 
@@ -621,6 +623,8 @@ function renderFin() {
   const nivel2Url = `${nivel2Base}?nombre=${encodeURIComponent(state.playerName)}&avatar=${state.avatarIndex}`;
   // =======================================================================
 
+  const gano = aciertos >= MINIMO_APROBADO;
+
   appHtml(`
     <div class="bg-white rounded-3xl shadow-2xl p-8 flex flex-col items-center animate-fadeIn relative">
       <img src="https://res.cloudinary.com/dqqeavica/image/upload/v1756743104/secretaria_de_Transito_nxsvyp.jpg" alt="Secretaría de Tránsito" class="tránsito-entity-img mb-3">
@@ -631,7 +635,7 @@ function renderFin() {
       <div class="mb-2 text-xl font-bold text-yellow-500">Puntaje final: <span class="text-blue-900">${state.score}</span></div>
       <div class="mb-2 text-2xl">${estrellas}</div>
       ${
-        aciertos >= MINIMO_APROBADO
+        gano
         ? `
           <div class="aprobado-txt">¡Haz superado este reto! 🎉</div>
           <div class="codigo-premio">Tu código de ganador: <span>${CODIGO_PREMIO}</span></div>
@@ -644,14 +648,16 @@ function renderFin() {
           <div class="text-slate-600 text-md mb-2">Aciertos: <span class="font-bold">${aciertos}</span> de ${state.totalPreguntas}</div>
         `
       }
-      <div class="mb-4">
+      <div class="mb-4 flex flex-col items-center">
         <button onclick="verTareas()" class="game-btn bg-green-400 hover:bg-green-500 text-white px-6 py-2 rounded-lg font-bold mt-1">Ver tareas para casa</button>
-
-       <!-- Ir a Nivel 2 con nombre y avatar -->
-            <div class="mt-2">
-              <a href="${nivel2Url}" class="game-btn px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold">Ir a Nivel 2</a>
-            </div>
-          </div>
+        ${
+          gano
+          ? `<div class="mt-4 flex justify-center w-full">
+               <a href="${nivel2Url}" class="game-btn px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-lg text-center">Ir a Segundo Nivel</a>
+             </div>`
+          : ""
+        }
+      </div>
       <div class="mt-2 flex flex-col gap-2">
         <button onclick="renderInicio()" class="game-btn px-4 py-2 bg-blue-200 hover:bg-blue-400 text-blue-900 rounded-lg font-bold">Volver al inicio</button>
         <button onclick="jugarDeNuevo()" class="game-btn px-4 py-2 bg-yellow-300 hover:bg-yellow-400 text-yellow-900 rounded-lg font-bold">Jugar de nuevo</button>
